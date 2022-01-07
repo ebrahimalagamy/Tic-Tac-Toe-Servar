@@ -93,10 +93,8 @@ class DataHandle extends Thread {
                     pst.setString(1,arrOfStrings[1]);
                     rs = pst.executeQuery();
                     if (rs.next())
-                       dos.writeUTF(getData());
-                       
-                    else
-                        dos.writeUTF("NoSuschPlayer");
+                       dos.writeUTF(tableData());
+                 
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
                    /////////////////////     
@@ -130,7 +128,7 @@ class DataHandle extends Thread {
     return (requestTypes.getData.name()+"+"+name);
     }
     
- public String getData() throws SQLException{
+ public String tableData() throws SQLException{
    
        return("PlayerData"+"+"
                + rs.getInt(1)+"+"
