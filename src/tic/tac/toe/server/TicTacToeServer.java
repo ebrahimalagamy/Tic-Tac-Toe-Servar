@@ -36,7 +36,7 @@ class DataHandle extends Thread {
     }
     
     public static enum requestTypes{
-        register,login,getData,setData,setMove
+        register,login,getData,setData,setMove,player1,player2,createroom
     }
     
     @Override
@@ -84,9 +84,8 @@ class DataHandle extends Thread {
                     }}
                     catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
                     break;
-                    
-                    
-                    
+               /////////////////     
+
                     case getData:
                         //System.out.println("server get data");
                         try {
@@ -98,9 +97,14 @@ class DataHandle extends Thread {
                        
                     else
                         dos.writeUTF("NoSuschPlayer");
-                    
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
+                   /////////////////////     
+                     case createroom:
+                         
+                         dos.writeUTF("Roomclosed");
+                         
+                          break;
                 }
                 
                 
