@@ -51,14 +51,24 @@ class DataHandle extends Thread {
                 switch(Key){
                     case register:
                     try {
-                    pst = con.prepareStatement("insert into Player(NAME,PASSWORD,EMAIL) values(?,?,?)");
+                        //email check not work
+                    pst = con.prepareStatement("select * from Player where NAME= ?");
                     pst.setString(1,arrOfStrings[1]);
-                    pst.setString(2,arrOfStrings[2]);
-                    pst.setString(3,arrOfStrings[3]);
-                    pst.executeUpdate();
-                    
-                    } catch (SQLException ex) {
-                        Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
+                    rs = pst.executeQuery();
+                     if (rs.next()){
+                      // if((rs.getString(2)).equals(arrOfStrings[1])||(rs.getString(4)).equals(arrOfStrings[3])){
+                                 dos.writeUTF("Duplicated");//}
+                     }
+                        
+                        else{
+                        pst = con.prepareStatement("insert into Player(NAME,PASSWORD,EMAIL) values(?,?,?)");
+                        pst.setString(1,arrOfStrings[1]);
+                        pst.setString(2,arrOfStrings[2]);
+                        pst.setString(3,arrOfStrings[3]);
+                        pst.executeUpdate();
+                        dos.writeUTF("SignUp");}
+                    }
+                    catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
                     break;
 
                     case login:
@@ -74,36 +84,69 @@ class DataHandle extends Thread {
                     }}
                     catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
                     break;
+                    
+                    
+                    
+                    case getData:
+                        //System.out.println("server get data");
+                        try {
+                    pst = con.prepareStatement("select * from Player where NAME = ?");
+                    pst.setString(1,arrOfStrings[1]);
+                    rs = pst.executeQuery();
+                    if (rs.next())
+                       dos.writeUTF(getData());
+                       
+                    else
+                        dos.writeUTF("NoSuschPlayer");
+                    
+                        }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
+                        break;
                 }
-            } 
-            catch(SocketException ex){
+                
+                
+            }catch(SocketException ex){
                 try {
                     s.close();
                     dis.close();
                     dos.close();
                     con.close();
                     
-                } catch (IOException ex1) {
-                    Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (SQLException ex1) {
-                    Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex1);
-                } finally{
+                }catch (IOException | SQLException ex1) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex1);}
+                finally{
                    System.out.println("user Closed");
-                   break; 
-                }
+                   break; }
+                
             }
-            catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
+            
+           catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
         }
            
     }
-}
+     public static String getData(String name){
+    return (requestTypes.getData.name()+"+"+name);
+    }
     
-
-
-
-
-public class TicTacToeServer {
+ public String getData() throws SQLException{
    
+       return("PlayerData"+"+"
+               + rs.getInt(1)+"+"
+               + rs.getString(2)+"+"
+               + rs.getString(3)+"+"
+               + rs.getString(4)+"+"
+               + rs.getInt(5)+"+" 
+               + rs.getInt(6)+"+"
+               + rs.getInt(7)+"+"
+               + rs.getInt(8));}
+ 
+}
+ 
+
+
+
+
+
+public class TicTacToeServer {  
+  
     
 ServerSocket serverSocket;
 Connection con;
