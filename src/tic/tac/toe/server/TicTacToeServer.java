@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class DataHandle extends Thread {
+    
      
     Connection con ;
     ResultSet rs;
@@ -31,7 +32,10 @@ class DataHandle extends Thread {
                 this.s = s;
                 dis = new DataInputStream(s.getInputStream());
                 dos = new DataOutputStream(s.getOutputStream());
-                start();}
+                start();
+            
+            
+            }
             catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
     }
     
@@ -164,31 +168,61 @@ class DataHandle extends Thread {
                + rs.getInt(8));}
  
 }
- 
- 
-
-
-
-
 
 public class TicTacToeServer {  
-  
+    public static final int PLAYER1 = 1;
+    public static final int PLAYER2 = 2;
+    public static final int PLAYER1_WON = 1;
+    public static final int PLAYER2_WON = 2;
+    public static final int DRAW = 3;
+    public static final int CONTINUE = 4;
     
-ServerSocket serverSocket;
-Connection con;
+    ServerSocket serverSocket;
+    Connection con;
+
+public static void main(String[] args) throws IOException
+        {
+        new TicTacToeServer();
+        }
 
         public TicTacToeServer() throws IOException
         {
             serverSocket = new ServerSocket(6060);
+            System.out.println(new java.util.Date() + ":     Server started at socket 8000\n");
+           
+            int sessionNum = 1;
+            
             while(true){
+                
                 Socket s = serverSocket.accept();
-                new DataHandle(s);}
+                 new DataHandle(s);
+              
+               System.out.println(new java.util.Date() + ":     Waiting for players to join session " + sessionNum + "\n");
+                
+                //connection to player1
+                Socket firstPlayer = serverSocket.accept();
+                System.out.println(new java.util.Date() + ":     Player 1 joined session " + sessionNum + ". Player 1's IP address " + firstPlayer.getInetAddress().getHostAddress() + "\n");
+                //notify first player that he is first player
+                new DataOutputStream(firstPlayer.getOutputStream()).writeInt(PLAYER1);
+
+                //connection to player2
+                Socket secondPlayer = serverSocket.accept();
+                System.out.println(new java.util.Date() + ":     Player 2 joined session " + sessionNum + ". Player 2's IP address " + secondPlayer.getInetAddress().getHostAddress() + "\n");
+                //notify second player that he is second player
+                new DataOutputStream(secondPlayer.getOutputStream()).writeInt(PLAYER2);
+
+                //starting the thread for two players
+                System.out.println(new java.util.Date() + ":Starting a thread for session " + sessionNum++ + "...\n");
+                NewSession task = new NewSession(firstPlayer, secondPlayer);
+                Thread t1 = new Thread(task);
+                t1.start();
+                
+
+            
+            }
         }
     
- public static void main(String[] args) throws IOException
-        {
-        new TicTacToeServer();
-        }
+ 
 }
    
     
