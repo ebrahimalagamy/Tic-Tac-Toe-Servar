@@ -97,10 +97,11 @@ class DataHandle extends Thread {
                  
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-                        //////////
 
+    
                         case setData:
                            try {
+
                                  pst = con.prepareStatement("select * from Player where NAME = ?");
                                  pst.setString(1,arrOfStrings[1]);
                                 rs = pst.executeQuery();
@@ -123,8 +124,7 @@ class DataHandle extends Thread {
                         
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-           
-                   /////////////////////     
+/////////////////////////////////////////////
                      case createroom:
                          
                          dos.writeUTF("Roomclosed");
@@ -196,7 +196,7 @@ public static void main(String[] args) throws IOException
                 
                 Socket s = serverSocket.accept();
                  new DataHandle(s);
-              
+              /*
                System.out.println(new java.util.Date() + ":     Waiting for players to join session " + sessionNum + "\n");
                 
                 //connection to player1
@@ -215,7 +215,7 @@ public static void main(String[] args) throws IOException
                 System.out.println(new java.util.Date() + ":Starting a thread for session " + sessionNum++ + "...\n");
                 NewSession task = new NewSession(firstPlayer, secondPlayer);
                 Thread t1 = new Thread(task);
-                t1.start();
+                t1.start();*/
                 
 
             
