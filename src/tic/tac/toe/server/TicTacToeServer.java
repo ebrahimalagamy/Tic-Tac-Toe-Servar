@@ -60,11 +60,8 @@ class DataHandle extends Thread {
                     pst.setString(1,arrOfStrings[1]);
                     rs = pst.executeQuery();
                      if (rs.next()){
-                      // if((rs.getString(2)).equals(arrOfStrings[1])||(rs.getString(4)).equals(arrOfStrings[3])){
-                                 dos.writeUTF("Duplicated");//}
-                     }
-                        
-                        else{
+                        dos.writeUTF("Duplicated");//}
+                     }else{
                         pst = con.prepareStatement("insert into Player(NAME,PASSWORD,EMAIL) values(?,?,?)");
                         pst.setString(1,arrOfStrings[1]);
                         pst.setString(2,arrOfStrings[2]);
@@ -74,7 +71,7 @@ class DataHandle extends Thread {
                     }
                     catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
                     break;
-
+                   //////////////////
                     case login:
                     try {
                     pst = con.prepareStatement("select * from Player where NAME = ?");
@@ -89,7 +86,6 @@ class DataHandle extends Thread {
                     catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
                     break;
                /////////////////     
-
                     case getData:
                         //System.out.println("server get data");
                         try {
@@ -101,10 +97,11 @@ class DataHandle extends Thread {
                  
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-                   ///////////////////// 
+
+    
                         case setData:
                            try {
-                               //check if this part important
+
                                  pst = con.prepareStatement("select * from Player where NAME = ?");
                                  pst.setString(1,arrOfStrings[1]);
                                 rs = pst.executeQuery();
@@ -127,7 +124,7 @@ class DataHandle extends Thread {
                         
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-           //////////////////////
+/////////////////////////////////////////////
                      case createroom:
                          
                          dos.writeUTF("Roomclosed");
