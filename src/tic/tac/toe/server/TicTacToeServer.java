@@ -101,7 +101,33 @@ class DataHandle extends Thread {
                  
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-                   /////////////////////     
+                   ///////////////////// 
+                        case setData:
+                           try {
+                               //check if this part important
+                                 pst = con.prepareStatement("select * from Player where NAME = ?");
+                                 pst.setString(1,arrOfStrings[1]);
+                                rs = pst.executeQuery();
+                                ////////
+                              if (rs.next()){
+                                  int win=rs.getInt(6)+Integer.parseInt(arrOfStrings[2]);
+                                  int lose=rs.getInt(7)+Integer.parseInt(arrOfStrings[3]);
+                                 // int tie= rs.getInt(8)+Integer.parseInt(arrOfStrings[4]);
+                                  int GAMEPLAYED=win+lose/*+tie*/;
+                                  //add Tie
+                                   pst = con.prepareStatement("UPDATE Player SET GAMEPLAYED=?,WIN=?,LOSE=? WHERE NAME =? ");
+                                   pst.setString(4,arrOfStrings[1]);
+                                   pst.setInt(2,win); 
+                                   pst.setInt(3,lose);
+                                // pst.setInt(4,tie);
+                                   pst.setInt(1,GAMEPLAYED);
+                                   pst.executeUpdate();
+                             
+                              }
+                        
+                        }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
+                        break;
+           //////////////////////
                      case createroom:
                          
                          dos.writeUTF("Roomclosed");
@@ -173,7 +199,7 @@ public static void main(String[] args) throws IOException
                 
                 Socket s = serverSocket.accept();
                  new DataHandle(s);
-              
+              /*
                System.out.println(new java.util.Date() + ":     Waiting for players to join session " + sessionNum + "\n");
                 
                 //connection to player1
@@ -192,7 +218,7 @@ public static void main(String[] args) throws IOException
                 System.out.println(new java.util.Date() + ":Starting a thread for session " + sessionNum++ + "...\n");
                 NewSession task = new NewSession(firstPlayer, secondPlayer);
                 Thread t1 = new Thread(task);
-                t1.start();
+                t1.start();*/
                 
 
             
