@@ -101,6 +101,7 @@ class DataHandle extends Thread {
     
                         case setData:
                            try {
+                              // System.out.println("A7A");
 
                                  pst = con.prepareStatement("select * from Player where NAME = ?");
                                  pst.setString(1,arrOfStrings[1]);
@@ -109,14 +110,14 @@ class DataHandle extends Thread {
                               if (rs.next()){
                                   int win=rs.getInt(6)+Integer.parseInt(arrOfStrings[2]);
                                   int lose=rs.getInt(7)+Integer.parseInt(arrOfStrings[3]);
-                                 // int tie= rs.getInt(8)+Integer.parseInt(arrOfStrings[4]);
-                                  int GAMEPLAYED=win+lose/*+tie*/;
+                                  int tie= rs.getInt(8)+Integer.parseInt(arrOfStrings[4]);
+                                  int GAMEPLAYED=win+lose+tie;
                                   //add Tie
-                                   pst = con.prepareStatement("UPDATE Player SET GAMEPLAYED=?,WIN=?,LOSE=? WHERE NAME =? ");
-                                   pst.setString(4,arrOfStrings[1]);
+                                   pst = con.prepareStatement("UPDATE Player SET GAMEPLAYED=?,WIN=?,LOSE=?,TIE=? WHERE NAME =? ");
+                                   pst.setString(5,arrOfStrings[1]);
                                    pst.setInt(2,win); 
                                    pst.setInt(3,lose);
-                                // pst.setInt(4,tie);
+                                   pst.setInt(4,tie);
                                    pst.setInt(1,GAMEPLAYED);
                                    pst.executeUpdate();
                              
