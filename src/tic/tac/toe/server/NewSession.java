@@ -14,20 +14,20 @@ class NewSession implements Runnable {
     public static int CONTINUE = 4;
 
     //sockets
-    private Socket firstPlayer;
-    private Socket secondPlayer;
+    public Socket firstPlayer;
+    public Socket secondPlayer;
 
     private char[][] cell = new char[3][3];
-    
+     public NewSession(){}
     public NewSession(Socket firstPlayer, Socket secondPlayer) {
         this.firstPlayer = firstPlayer;
         this.secondPlayer = secondPlayer;
 
-        for (int i = 0; i < 3; i++) {
+       /* for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 cell[i][j] = ' ';
             }
-        }
+        }*/
     }
 
     @Override
@@ -103,7 +103,7 @@ class NewSession implements Runnable {
         return true;
     }
 
-    private boolean isWon(char token) {
+   private boolean isWon(char token) {
         //checking main diagonal
         if ((cell[0][0] == token) && (cell[1][1] == token) && (cell[2][2] == token))
             return true;
@@ -127,4 +127,5 @@ class NewSession implements Runnable {
 
         return false;
     }
-}
+}/*
+ */

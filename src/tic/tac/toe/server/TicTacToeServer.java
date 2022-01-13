@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class DataHandle extends Thread {
+    public static
     
      
     Connection con ;
@@ -19,7 +20,9 @@ class DataHandle extends Thread {
     PreparedStatement pst;
     DataInputStream dis;
     DataOutputStream dos;
-    Socket s;
+    Socket s,s1;
+    public static DataHandle First_Player;
+    public Room myroom;
     
     public DataHandle(Socket s){
             try {
@@ -33,10 +36,7 @@ class DataHandle extends Thread {
                 dis = new DataInputStream(s.getInputStream());
                 dos = new DataOutputStream(s.getOutputStream());
                 start();
-            
-            
-            }
-            catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
+            }catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
     }
     
     public static enum requestTypes{
@@ -47,90 +47,86 @@ class DataHandle extends Thread {
     public void run(){
         while(true){
             try {
-                String data = dis.readUTF();
-           
-                String[] arrOfStrings = data.split("\\+");
-                requestTypes Key = requestTypes.valueOf(arrOfStrings[0]);
+                 String msg = dis.readUTF();
+                 String[] arrOfStrings = msg.split("\\+");
+                 requestTypes Key = requestTypes.valueOf(arrOfStrings[0]);
 
                 switch(Key){
+                    //sign up
                     case register:
-                    try {
-                        //email check not work
-                    pst = con.prepareStatement("select * from Player where NAME= ?");
-                    pst.setString(1,arrOfStrings[1]);
-                    rs = pst.executeQuery();
-                     if (rs.next()){
-                        dos.writeUTF("Duplicated");//}
-                     }else{
-                        pst = con.prepareStatement("insert into Player(NAME,PASSWORD,EMAIL) values(?,?,?)");
-                        pst.setString(1,arrOfStrings[1]);
-                        pst.setString(2,arrOfStrings[2]);
-                        pst.setString(3,arrOfStrings[3]);
-                        pst.executeUpdate();
-                        dos.writeUTF("SignUp");}
-                    }
-                    catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
-                    break;
-                   //////////////////
+                            try {   
+                                pst = con.prepareStatement("select * from Player where NAME= ?");
+                                pst.setString(1,arrOfStrings[1]);
+                                rs = pst.executeQuery();
+                                 if (rs.next()){
+                                    dos.writeUTF("Duplicated");//}
+                                 }else{
+                                    pst = con.prepareStatement("insert into Player(NAME,PASSWORD,EMAIL) values(?,?,?)");
+                                    pst.setString(1,arrOfStrings[1]);
+                                    pst.setString(2,arrOfStrings[2]);
+                                    pst.setString(3,arrOfStrings[3]);
+                                    pst.executeUpdate();
+                                    dos.writeUTF("SignUp");}
+                                }
+                             catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
+                                break;
+                    //Login
                     case login:
-                    try {
-                    pst = con.prepareStatement("select * from Player where NAME = ?");
-                    pst.setString(1,arrOfStrings[1]);
-                    rs = pst.executeQuery();
-                    while (rs.next()){
-                    if((rs.getString(3)).equals(arrOfStrings[2]))
-                        dos.writeUTF("validsignin");
-                    else
-                        dos.writeUTF("invalidsignin");                    
-                    }}
-                    catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
-                    break;
-               /////////////////     
-                    case getData:
-                        //System.out.println("server get data");
+                         try {
+                                pst = con.prepareStatement("select * from Player where NAME = ?");
+                                pst.setString(1,arrOfStrings[1]);
+                                rs = pst.executeQuery();
+                                while (rs.next()){
+                                if((rs.getString(3)).equals(arrOfStrings[2]))
+                                    dos.writeUTF("validsignin");
+                                else
+                                    dos.writeUTF("invalidsignin");                    
+                                }
+                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); }
+                             break;
+                    //get table player data    
+                    case getData:    
                         try {
-                    pst = con.prepareStatement("select * from Player where NAME = ?");
-                    pst.setString(1,arrOfStrings[1]);
-                    rs = pst.executeQuery();
-                    if (rs.next())
-                       dos.writeUTF(tableData());
-                 
-                        }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
-                        break;
+                                pst = con.prepareStatement("select * from Player where NAME = ?");
+                                pst.setString(1,arrOfStrings[1]);
+                                rs = pst.executeQuery();
+                                if (rs.next())
+                                  dos.writeUTF(tableData());
+                            }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
+                              break;
 
-    
-                        case setData:
+                    //set table player data  
+                    case setData:
                            try {
-                              // System.out.println("A7A");
-
                                  pst = con.prepareStatement("select * from Player where NAME = ?");
                                  pst.setString(1,arrOfStrings[1]);
                                 rs = pst.executeQuery();
-                                ////////
+                         
                               if (rs.next()){
                                   int win=rs.getInt(6)+Integer.parseInt(arrOfStrings[2]);
                                   int lose=rs.getInt(7)+Integer.parseInt(arrOfStrings[3]);
                                   int tie= rs.getInt(8)+Integer.parseInt(arrOfStrings[4]);
                                   int GAMEPLAYED=win+lose+tie;
-                                  //add Tie
                                    pst = con.prepareStatement("UPDATE Player SET GAMEPLAYED=?,WIN=?,LOSE=?,TIE=? WHERE NAME =? ");
                                    pst.setString(5,arrOfStrings[1]);
                                    pst.setInt(2,win); 
                                    pst.setInt(3,lose);
                                    pst.setInt(4,tie);
                                    pst.setInt(1,GAMEPLAYED);
-                                   pst.executeUpdate();
-                             
-                              }
-                        
-                        }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
-                        break;
-/////////////////////////////////////////////
-                     case createroom:
-                         
-                         dos.writeUTF("Roomclosed");
-                         
-                          break;
+                                   pst.executeUpdate();}
+                                 }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
+                                    break;
+               
+                    case createroom:
+                         if(First_Player==null){
+                              First_Player = this;
+                         }
+                         else{
+                             myroom=new Room(First_Player,this);
+                             First_Player.myroom=myroom;
+                             First_Player=null;
+                         }
+                         break;
                 }
                 
                 
@@ -152,10 +148,30 @@ class DataHandle extends Thread {
         }
            
     }
-     public static String getData(String name){
-    return (requestTypes.getData.name()+"+"+name);
-    }
     
+  public class Room{
+     public DataHandle player1;
+     public DataHandle player2;
+     
+   
+     
+     Room(DataHandle player1,DataHandle player2){
+         this.player1=player1;
+         this.player2=player2;}
+     
+     public void sendToALl(String message) throws IOException{
+        player1.dos.writeUTF(message);
+        player2.dos.writeUTF(message);}
+    
+            
+    }
+
+        
+    
+   
+     
+   
+   
  public String tableData() throws SQLException{
    
        return("PlayerData"+"+"
@@ -171,12 +187,8 @@ class DataHandle extends Thread {
 }
 
 public class TicTacToeServer {  
-    public static final int PLAYER1 = 1;
-    public static final int PLAYER2 = 2;
-    public static final int PLAYER1_WON = 1;
-    public static final int PLAYER2_WON = 2;
-    public static final int DRAW = 3;
-    public static final int CONTINUE = 4;
+   
+     NewSession player = new NewSession();
     
     ServerSocket serverSocket;
     Connection con;
@@ -197,26 +209,12 @@ public static void main(String[] args) throws IOException
                 
                 Socket s = serverSocket.accept();
                  new DataHandle(s);
-              /*
-               System.out.println(new java.util.Date() + ":     Waiting for players to join session " + sessionNum + "\n");
-                
-                //connection to player1
-                Socket firstPlayer = serverSocket.accept();
-                System.out.println(new java.util.Date() + ":     Player 1 joined session " + sessionNum + ". Player 1's IP address " + firstPlayer.getInetAddress().getHostAddress() + "\n");
-                //notify first player that he is first player
-                new DataOutputStream(firstPlayer.getOutputStream()).writeInt(PLAYER1);
-
-                //connection to player2
-                Socket secondPlayer = serverSocket.accept();
-                System.out.println(new java.util.Date() + ":     Player 2 joined session " + sessionNum + ". Player 2's IP address " + secondPlayer.getInetAddress().getHostAddress() + "\n");
-                //notify second player that he is second player
-                new DataOutputStream(secondPlayer.getOutputStream()).writeInt(PLAYER2);
-
-                //starting the thread for two players
-                System.out.println(new java.util.Date() + ":Starting a thread for session " + sessionNum++ + "...\n");
-                NewSession task = new NewSession(firstPlayer, secondPlayer);
-                Thread t1 = new Thread(task);
-                t1.start();*/
+                player.firstPlayer=serverSocket.accept();
+                 new DataHandle( player.firstPlayer);
+                 player.secondPlayer=serverSocket.accept();
+                 new DataHandle( player.secondPlayer);
+                 
+              
                 
 
             
