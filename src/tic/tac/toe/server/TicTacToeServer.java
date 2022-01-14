@@ -8,18 +8,31 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class DataHandle extends Thread {
     
-     
+    public static final String separator = ",";
+    public static final String iWantToPlay = "iWantToPlay";
+    public static final String  letsPlay= "letsPlay";
+    public static final String  yourSymbole= "yourSymbole";
+    public static final String  move= "move";
+    public static final String X="x";
+    public static final String O ="o";
+    public static DataHandle availToPlay;
+    static Vector<DataHandle> clientsVector = new Vector<DataHandle>();
+    public String name = "no name";
+    
     Connection con ;
     ResultSet rs;
     PreparedStatement pst;
     DataInputStream dis;
     DataOutputStream dos;
-    Socket s;
+    
+    DataHandle otherPlayer;
+    
     
     public DataHandle(Socket s){
             try {
@@ -29,9 +42,10 @@ class DataHandle extends Thread {
                      con = DriverManager.getConnection("jdbc:derby://localhost:1527/IdDbs","Mohamed16","161996");}
                 catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
                 
-                this.s = s;
+                //this.s = s;
                 dis = new DataInputStream(s.getInputStream());
                 dos = new DataOutputStream(s.getOutputStream());
+                clientsVector.add(this);
                 start();
             
             
@@ -39,8 +53,13 @@ class DataHandle extends Thread {
             catch (IOException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex);}
     }
     
+    public void sendToBothPlayer(String message) throws IOException{
+        dos.writeUTF(message);
+        otherPlayer.dos.writeUTF(message);
+    }
+    
     public static enum requestTypes{
-        register,login,getData,setData,setMove,player1,player2,createroom
+        register,login,getData,setData,setMove,player1,player2,createroom,iWantToPlay
     }
     
     @Override
@@ -50,6 +69,42 @@ class DataHandle extends Thread {
                 String data = dis.readUTF();
            
                 String[] arrOfStrings = data.split("\\+");
+                
+                   
+                    String[] request = data.split(separator);
+                    
+                    System.out.println(data);
+                    System.out.println(request.length!=0);
+                    System.out.println(request[0]);
+                   
+                        if(request[0].equals(iWantToPlay)){
+                            //request[1] userName
+                            name = request[1];
+                            if(availToPlay == null){
+                                availToPlay = this;
+                                System.out.println(iWantToPlay+" 1");
+                            }else{
+                                otherPlayer = availToPlay;
+                                availToPlay.otherPlayer = this;
+                                availToPlay = null;
+                                dos.writeUTF(yourSymbole+separator+X+separator+otherPlayer.name);
+                                otherPlayer.dos.writeUTF(yourSymbole+separator+O+separator+name);
+
+                                sendToBothPlayer(letsPlay);
+                            }
+                        }else if(request[0].equals(move)){
+                            // request[1] == position
+                            // request[2] == symbole
+
+                            String nextTurn;
+                            if(request[2].equals(X))
+                                nextTurn =O;
+                            else
+                                nextTurn =X;
+                            System.out.println(data+separator+nextTurn);
+                            sendToBothPlayer(data+separator+nextTurn);
+                        }else{
+                            
                 requestTypes Key = requestTypes.valueOf(arrOfStrings[0]);
 
                 switch(Key){
@@ -79,7 +134,10 @@ class DataHandle extends Thread {
                     rs = pst.executeQuery();
                     while (rs.next()){
                     if((rs.getString(3)).equals(arrOfStrings[2]))
+                    {
+                        name = rs.getString("NAME");
                         dos.writeUTF("validsignin");
+                    }
                     else
                         dos.writeUTF("invalidsignin");                    
                     }}
@@ -124,18 +182,13 @@ class DataHandle extends Thread {
                         
                         }catch (SQLException ex) {Logger.getLogger(DataHandle.class.getName()).log(Level.SEVERE, null, ex); } 
                         break;
-/////////////////////////////////////////////
-                     case createroom:
-                         
-                         dos.writeUTF("Roomclosed");
-                         
-                          break;
                 }
                 
+            }
+
                 
             }catch(SocketException ex){
                 try {
-                    s.close();
                     dis.close();
                     dos.close();
                     con.close();
@@ -170,56 +223,20 @@ class DataHandle extends Thread {
 }
 
 public class TicTacToeServer {  
-    public static final int PLAYER1 = 1;
-    public static final int PLAYER2 = 2;
-    public static final int PLAYER1_WON = 1;
-    public static final int PLAYER2_WON = 2;
-    public static final int DRAW = 3;
-    public static final int CONTINUE = 4;
-    
     ServerSocket serverSocket;
-    Connection con;
-
-public static void main(String[] args) throws IOException
-        {
-        new TicTacToeServer();
-        }
 
         public TicTacToeServer() throws IOException
         {
             serverSocket = new ServerSocket(6060);
-            System.out.println(new java.util.Date() + ":     Server started at socket 8000\n");
-           
-            int sessionNum = 1;
-            
             while(true){
-                
                 Socket s = serverSocket.accept();
                  new DataHandle(s);
-              /*
-               System.out.println(new java.util.Date() + ":     Waiting for players to join session " + sessionNum + "\n");
-                
-                //connection to player1
-                Socket firstPlayer = serverSocket.accept();
-                System.out.println(new java.util.Date() + ":     Player 1 joined session " + sessionNum + ". Player 1's IP address " + firstPlayer.getInetAddress().getHostAddress() + "\n");
-                //notify first player that he is first player
-                new DataOutputStream(firstPlayer.getOutputStream()).writeInt(PLAYER1);
 
-                //connection to player2
-                Socket secondPlayer = serverSocket.accept();
-                System.out.println(new java.util.Date() + ":     Player 2 joined session " + sessionNum + ". Player 2's IP address " + secondPlayer.getInetAddress().getHostAddress() + "\n");
-                //notify second player that he is second player
-                new DataOutputStream(secondPlayer.getOutputStream()).writeInt(PLAYER2);
-
-                //starting the thread for two players
-                System.out.println(new java.util.Date() + ":Starting a thread for session " + sessionNum++ + "...\n");
-                NewSession task = new NewSession(firstPlayer, secondPlayer);
-                Thread t1 = new Thread(task);
-                t1.start();*/
-                
-
-            
             }
+        }
+        
+        public static void main(String[] args) throws IOException{
+                 new TicTacToeServer();
         }
     
  
